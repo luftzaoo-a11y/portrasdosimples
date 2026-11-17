@@ -1,0 +1,13 @@
+{
+  "_ajuda": "Posicoes em fracao da tela (0 a 1): [x, y, largura, altura]. Use 'python -m cortes calibrar VIDEO' para descobrir. null = detectar automatico.",
+  "padrao": {
+    "facecam": null,
+    "jogo": null,
+    "proporcao_cam": 0.4,
+    "idioma": "pt"
+  },
+  "exemplo_streamer": {
+    "facecam": [0.0, 0.62, 0.24, 0.32],
+    "jogo": null
+  }
+}
