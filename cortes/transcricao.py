@@ -24,10 +24,29 @@ def _ler_trecho(caminho: str, inicio: float = 0.0, duracao: float | None = None)
     return np.frombuffer(dados, dtype=np.int16).astype(np.float32) / 32768.0
 
 
+def _dlls_nvidia() -> None:
+    """No Windows, deixa o Python achar as DLLs da NVIDIA instaladas pelo pip (cuBLAS/cuDNN)."""
+    if os.name != "nt":
+        return
+    import glob
+    import site
+
+    for base in site.getsitepackages() + [site.getusersitepackages()]:
+        for pasta in glob.glob(os.path.join(base, "nvidia", "*", "bin")):
+            try:
+                os.add_dll_directory(pasta)
+            except OSError:
+                pass
+            os.environ["PATH"] = pasta + os.pathsep + os.environ.get("PATH", "")
+
+
 def _carregar(nome: str):
     if nome in _modelos:
         return _modelos[nome]
+    import numpy as np
     from faster_whisper import WhisperModel
+
+    _dlls_nvidia()
 
     dispositivo = os.environ.get("CORTES_DISPOSITIVO", "auto")
     tentativas = []
@@ -39,6 +58,8 @@ def _carregar(nome: str):
     for disp, tipo in tentativas:
         try:
             modelo = WhisperModel(nome, device=disp, compute_type=tipo)
+            if disp == "cuda":  # testa de verdade: as DLLs da GPU so carregam na primeira transcricao
+                list(modelo.transcribe(np.zeros(16000, dtype=np.float32), language="pt")[0])
             log(f"Whisper '{nome}' carregado em {disp.upper()} ({tipo}).")
             _modelos[nome] = modelo
             return modelo

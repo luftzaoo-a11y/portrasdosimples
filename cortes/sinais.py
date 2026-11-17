@@ -51,7 +51,9 @@ def _media_movel(v: np.ndarray, janela: int) -> np.ndarray:
     if janela <= 1 or len(v) == 0:
         return v
     k = np.ones(janela, dtype=np.float32) / janela
-    return np.convolve(v, k, mode="same")
+    pad = janela // 2
+    vp = np.pad(v, (pad, janela - 1 - pad), mode="edge")  # repete a borda (evita pico falso no inicio/fim)
+    return np.convolve(vp, k, mode="valid")
 
 
 def _linha_base(v: np.ndarray, janela: int = 300) -> np.ndarray:
@@ -67,26 +69,26 @@ def _linha_base(v: np.ndarray, janela: int = 300) -> np.ndarray:
     return np.interp(np.arange(len(v)), centros, medianas).astype(np.float32)
 
 
-def destaque(v: np.ndarray, suavizar: int) -> np.ndarray:
+def destaque(v: np.ndarray, suavizar: int, escala_min: float) -> np.ndarray:
     """Quanto cada segundo esta acima do normal, em 'desvios' (0 = normal)."""
     if len(v) == 0:
         return v
     s = _media_movel(v, suavizar)
     excesso = s - _linha_base(s)
-    escala = np.median(np.abs(excesso - np.median(excesso))) * 1.4826 + 1e-6
+    escala = max(float(np.median(np.abs(excesso - np.median(excesso)))) * 1.4826, escala_min)
     return np.clip(excesso / escala, 0, None)
 
 
 def calcular(volume: np.ndarray, chat: np.ndarray | None, atraso_chat: int = 6) -> dict:
     """Retorna os destaques de audio, chat e a pontuacao combinada por segundo."""
-    a = destaque(volume, 3)
+    a = destaque(volume, 3, escala_min=1.5)  # dB
     c = None
     if chat is not None and chat.sum() > 0:
         n = len(a)
         chat = np.pad(chat, (0, max(0, n - len(chat))))[:n]
         # o chat reage alguns segundos depois do acontecimento: puxa para tras
         chat = np.concatenate([chat[atraso_chat:], np.zeros(atraso_chat, dtype=np.float32)])
-        c = destaque(chat, 10)
+        c = destaque(chat, 10, escala_min=0.3)  # mensagens/s
         total = 0.45 * a + 0.55 * c
     else:
         total = a

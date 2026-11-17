@@ -1,0 +1,13 @@
+{
+  "_ajuda": "Posicao da camera e do jogo por streamer, em fracao da tela (0 a 1): [x, y, largura, altura]. null = detectar sozinho. Para descobrir: python -m cortes calibrar VIDEO",
+  "padrao": {
+    "facecam": null,
+    "jogo": null,
+    "proporcao_cam": 0.4,
+    "idioma": "pt",
+    "fonte": "Arial"
+  },
+  "nome_do_streamer_exemplo": {
+    "facecam": [0.0, 0.62, 0.24, 0.32]
+  }
+}

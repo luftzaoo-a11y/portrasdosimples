@@ -1,0 +1,9 @@
+# Lista de streamers que o clipador acompanha (um por linha).
+# Formatos aceitos:
+#   twitch:nome
+#   kick:nome
+#   youtube:@canal
+#   ou o link direto do canal
+# Linhas com # sao ignoradas.
+
+twitch:exemplo
